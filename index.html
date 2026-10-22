@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ko">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>규칙 탐정 - 규칙 탐정과 함께하는 수학 수업</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&amp;family=Fraunces:opsz,wght@9..144,700;9..144,800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root { --ink:#16334a; --navy:#12314a; --sun:#ffd457; --coral:#fa765c; --paper:#fffdf4; --mint:#bdebd8; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"DM Sans",sans-serif; color:var(--ink); }
+    .app-shell { width:100%; min-height:100vh; background:#e8f3f0; overflow:hidden; }
+    .dot-bg { background-image:radial-gradient(#b8d7d0 1.2px, transparent 1.2px); background-size:20px 20px; }
+    .screen { display:none; }
+    .screen.active { display:block; animation:slideIn .42s ease both; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:translateY(0) } }
+    .shape-btn { color:#16334a; transition:transform .15s ease, box-shadow .15s ease; }
+    .shape-btn:hover, .shape-btn:focus-visible { transform:translateY(-4px); box-shadow:0 10px 0 rgba(18,49,74,.14); }
+    .shape-btn:active { transform:translateY(1px); box-shadow:none; }
+    .array-token { width:52px; height:52px; flex:0 0 52px; border-radius:16px; display:inline-flex; align-items:center; justify-content:center; background:transparent; border:2px solid #d8e7e4; color:#16334a; font-size:31px; box-shadow:0 4px 0 #d4e5e0; }
+    .quiz-answer-box { background:#fff; border:3px dashed #12314a; color:#12314a; font-weight:800; }
+    .choice.selected { outline:4px solid var(--navy); background:#fff6ce; }
+    .quiz-choice.selected { outline:4px solid var(--navy); outline-offset:2px; box-shadow:0 8px 0 rgba(18,49,74,.16); transform:translateY(-3px); }
+    .detecting { animation:blink 1s ease-in-out infinite; }
+    @keyframes blink { 50% { opacity:.35 } }
+    .confetti { position:absolute; width:12px; height:12px; border-radius:3px; animation:burst .9s ease-out forwards; }
+    @keyframes burst { from { transform:translate(0,0) rotate(0); opacity:1 } to { transform:translate(var(--x), var(--y)) rotate(260deg); opacity:0 } }
+    .hidden-panel { display:none; }
+    button:focus-visible { outline:4px solid #12314a; outline-offset:3px; }
+    #brand-header-btn { cursor: pointer; transition: transform 0.1s ease; }
+    #brand-header-btn:hover { transform: scale(1.02); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="app-shell dot-bg">
+   <header class="w-full px-5 pt-5">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+     <div id="brand-header-btn" class="flex items-center gap-3" title="처음 화면으로 (3번 클릭시 선생님 화면)">
+      <div class="w-11 h-11 rounded-2xl bg-[#ffd457] flex items-center justify-center shadow-[0_4px_0_#d5a62c] text-2xl">
+        🕵️
+      </div>
+      <div>
+       <p class="canva-text text-xs font-bold tracking-[.15em] text-[#477181] uppercase">퇴계원초 1학년</p>
+       <h1 class="canva-text font-extrabold leading-none text-[#12314a]">규칙 탐정과 함께하는 수학 수업</h1>
+      </div>
+     </div>
+     <div class="flex items-center gap-2">
+      <div id="student-badge" class="hidden text-sm font-bold rounded-full bg-white px-4 py-2 shadow-sm text-[#12314a] border border-[#d8e7e4]"></div>
+     </div>
+    </div>
+   </header>
+
+   <main class="w-full px-5 pb-10 pt-8">
+    <!-- Welcome Screen -->
+    <section id="welcome" class="screen active max-w-4xl mx-auto text-center pt-7">
+     <div class="relative bg-[#12314a] rounded-[2.5rem] px-6 py-12 md:py-16 text-white overflow-hidden shadow-[0_12px_0_#0a2234]">
+      <div class="relative max-w-2xl mx-auto">
+       <div class="text-6xl mb-5">🤖</div>
+       <h2 class="canva-text font-extrabold mb-4 text-3xl md:text-4xl">신나는 규칙 탐험</h2>
+       <p class="canva-text text-lg md:text-xl leading-relaxed text-[#e1f5ee] mb-8">내가 생각하고, 규칙 탐정이 살펴보고, 함께 비교해 봐요!</p>
+       <button id="start-btn" type="button" class="canva-button rounded-2xl px-7 py-4 bg-[#ffd457] text-[#12314a] font-extrabold text-xl shadow-[0_5px_0_#d5a62c] hover:translate-y-0.5 transition">규칙 만들기 시작</button>
+      </div>
+     </div>
+    </section>
+
+    <!-- Step 1: Student Number Selection -->
+    <section id="student" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#fffdf4] rounded-[2rem] p-6 md:p-10 shadow-xl">
+      <p class="canva-text text-sm font-bold tracking-wider text-[#d45f47] mb-2">1단계</p>
+      <h2 class="canva-text font-extrabold text-2xl mb-3">내 번호 고르기</h2>
+      <p class="canva-text text-[#477181] mb-7">나의 출석 번호를 눌러주세요.</p>
+      <div id="student-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-3"></div>
+      <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-between items-center">
+       <p id="selected-student" class="font-bold text-[#477181]" aria-live="polite"></p>
+       <button id="student-next" type="button" disabled class="canva-button rounded-xl px-6 py-3 bg-[#12314a] text-white font-bold disabled:opacity-40">다음 단계로</button>
+      </div>
+     </div>
+    </section>
+
+    <!-- Step 2: Shape Count Choice -->
+    <section id="level" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#fffdf4] rounded-[2rem] p-6 md:p-10 shadow-xl text-center">
+      <p class="canva-text text-sm font-bold tracking-wider text-[#d45f47] mb-2">2단계</p>
+      <h2 class="canva-text font-extrabold text-2xl mb-3">사용할 모양 개수 정하기</h2>
+      <div id="level-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto">
+        <button data-level="2" type="button" class="level-choice rounded-2xl bg-[#d7ebfa] py-5 text-2xl font-extrabold">2개</button>
+        <button data-level="3" type="button" class="level-choice rounded-2xl bg-[#bdebd8] py-5 text-2xl font-extrabold">3개</button>
+        <button data-level="4" type="button" class="level-choice rounded-2xl bg-[#e9ddfa] py-5 text-2xl font-extrabold">4개</button>
+      </div>
+     </div>
+    </section>
+
+    <!-- Step 3: Pattern Builder -->
+    <section id="builder" class="screen max-w-4xl mx-auto">
+     <div class="text-center mb-6">
+      <p class="canva-text text-sm font-bold tracking-wider text-[#d45f47]">3단계</p>
+      <h2 class="canva-text font-extrabold text-2xl">나만의 규칙을 만들어 보세요!</h2>
+      <p class="canva-text text-[#477181] mt-2">모양을 눌러 순서대로 놓아 보세요.</p>
+     </div>
+     <div class="bg-[#fffdf4] rounded-[2rem] p-5 md:p-8 shadow-xl">
+      <div class="flex items-center justify-between mb-4">
+       <p class="canva-text font-bold">내가 만든 모양 줄</p>
+       <span id="shape-count" class="font-bold text-sm bg-[#e3f3ee] px-3 py-1 rounded-full">0 / 12</span>
+      </div>
+      <div id="pattern-array" class="min-h-[130px] rounded-2xl border-2 border-dashed border-[#b8d7d0] bg-[#f5fbf8] p-4 flex gap-3 flex-wrap content-center"></div>
+      <p id="minimum-note" class="text-sm font-bold text-[#d45f47] mt-4" aria-live="polite"></p>
+      <div class="grid grid-cols-5 gap-3 mt-7">
+       <button class="shape-btn rounded-2xl bg-[#f8d9d3] py-4 text-4xl" type="button" data-shape="●" aria-label="동그라미 추가">●</button>
+       <button class="shape-btn rounded-2xl bg-[#d7ebfa] py-4 text-4xl" type="button" data-shape="▲" aria-label="세모 추가">▲</button>
+       <button class="shape-btn rounded-2xl bg-[#e9ddfa] py-4 text-4xl" type="button" data-shape="■" aria-label="네모 추가">■</button>
+       <button class="shape-btn rounded-2xl bg-[#f9d6df] py-4 text-4xl" type="button" data-shape="♥" aria-label="하트 추가">♥</button>
+       <button class="shape-btn rounded-2xl bg-[#fff0ae] py-4 text-4xl" type="button" data-shape="★" aria-label="별 추가">★</button>
+      </div>
+      <div class="flex flex-wrap gap-3 mt-7 justify-between">
+       <div class="flex gap-3">
+        <button id="undo-btn" type="button" class="canva-button rounded-xl px-4 py-3 bg-[#e3f3ee] font-bold">하나 지우기</button>
+        <button id="reset-btn" type="button" class="canva-button rounded-xl px-4 py-3 bg-[#f8d9d3] font-bold">전체 지우기</button>
+       </div>
+       <button id="think-btn" type="button" class="canva-button rounded-xl px-5 py-3 bg-[#ffd457] text-[#12314a] font-extrabold">내 규칙 생각하기</button>
+      </div>
+     </div>
+    </section>
+    
+    <!-- Step 4: Expressing Thought -->
+    <section id="thinking" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#fffdf4] rounded-[2rem] p-6 md:p-9 shadow-xl">
+      <p class="canva-text text-sm font-bold tracking-wider text-[#d45f47]">4단계</p>
+      <h2 class="canva-text font-extrabold text-2xl mt-1">내가 생각한 규칙 말하기</h2>
+      <p class="canva-text mt-3 text-[#477181]">어떤 모양들이 되풀이되는지 순서대로 눌러보세요.</p>
+      <div id="thinking-array" class="my-6 flex gap-2 flex-wrap justify-center rounded-2xl border-2 border-dashed border-[#5aa98e] bg-[#f5fbf8] p-5"></div>
+      <p class="canva-text font-bold mt-5 mb-3">반복되는 모양 순서 선택:</p>
+      <div id="thought-choices" class="flex flex-wrap justify-center gap-2" role="group" aria-label="반복 단위 선택"></div>
+      
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-3 rounded-2xl bg-[#fff0ae] border-2 border-[#ffd457] px-6 py-4 shadow-sm" aria-live="polite">
+       <span id="selected-rule-unit" class="font-extrabold text-[#12314a]"></span>
+       <span class="canva-text font-extrabold text-xl text-[#12314a]">이(가) 반복돼요! 🔁</span>
+      </div>
+      <p id="thought-note" class="text-sm font-bold text-[#d45f47] mt-2 text-center" aria-live="polite"></p>
+
+      <div class="flex flex-wrap justify-between items-center mt-6 gap-3">
+        <div class="flex gap-2">
+          <button id="thought-undo-btn" type="button" class="canva-button rounded-xl px-4 py-3 bg-[#e3f3ee] font-bold hover:bg-[#d1e8e1]" disabled>마지막 모양 지우기</button>
+          <button id="back-to-builder-btn" type="button" class="canva-button rounded-xl px-4 py-3 bg-[#f8d9d3] font-bold hover:bg-[#f2c6bc]">다시 만들기</button>
+        </div>
+        <button id="analyse-btn" type="button" class="canva-button rounded-xl px-6 py-4 bg-[#12314a] text-white font-extrabold text-lg">규칙 탐정에게 보여주기 🤖</button>
+      </div>
+     </div>
+    </section>
+    
+    <!-- Step 5: AI Analysis & Comparison -->
+    <section id="analysis" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#12314a] text-white rounded-[2rem] p-7 md:p-10 shadow-xl text-center overflow-hidden relative">
+      <div id="analysis-loading">
+       <div class="text-6xl detecting mb-5">🤖</div>
+       <h2 class="canva-text font-extrabold text-2xl mb-2">규칙 탐정이 규칙을 관찰하고 있어요...</h2>
+       <p class="canva-text text-[#d9f5eb]">어떤 규칙이 숨어있는지 꼼꼼히 살펴보는 중이에요!</p>
+      </div>
+      <div id="analysis-result" class="hidden-panel">
+       <p class="canva-text text-sm font-bold tracking-wider text-[#ffd457]">5단계: 나와 규칙 탐정의 생각 비교</p>
+       <h2 class="canva-text font-extrabold text-3xl mt-2 mb-6">나와 규칙 탐정의 생각 비교하기</h2>
+       
+       <div id="ai-success" class="hidden-panel">
+        <div class="grid md:grid-cols-2 gap-4 text-left">
+         <div class="bg-white/10 rounded-2xl p-5 border border-white/25 flex flex-col justify-center">
+          <p class="text-[#ffd457] font-bold text-sm">💡 내가 생각한 규칙</p>
+          <p id="chosen-thought" class="font-extrabold text-xl mt-2 text-white"></p>
+         </div>
+         <div class="flex flex-col gap-4">
+          <div class="bg-white/10 rounded-2xl p-5 border border-white/25">
+           <p class="text-[#ffd457] font-bold text-sm">🔍 규칙 탐정이 찾은 규칙</p>
+           <p id="ai-thought-summary" class="font-extrabold text-xl mt-2 text-white"></p>
+          </div>
+          <div class="bg-white/10 rounded-2xl p-5 border border-white/25">
+           <p class="text-[#d9f5eb] font-bold text-sm mb-1">🗣️ 규칙 탐정의 설명</p>
+           <p id="ai-explanation" class="text-lg font-bold leading-relaxed text-white"></p>
+          </div>
+         </div>
+        </div>
+
+        <p class="canva-text font-bold text-lg mt-7 mb-3 text-white">나와 규칙 탐정의 생각이 어떤가요?</p>
+        <div class="grid sm:grid-cols-2 gap-3">
+         <button id="match-yes" type="button" class="canva-button rounded-xl p-4 bg-[#bdebd8] text-[#12314a] font-extrabold text-lg">같아요! 😄</button>
+         <button id="match-no" type="button" class="canva-button rounded-xl p-4 bg-[#f8d9d3] text-[#12314a] font-extrabold text-lg">달라요! 🧐</button>
+        </div>
+       </div>
+
+       <div id="ai-failure" class="hidden-panel">
+        <div id="failure-array" class="my-6 flex gap-2 flex-wrap justify-center rounded-2xl border-2 border-dashed border-[#5aa98e] bg-white/10 p-5"></div>
+        <p class="canva-text text-xl leading-relaxed text-[#d9f5eb]">음, 아직 반복되는 일정한 규칙을 찾지 못했어요. 모양을 다시 놓아 볼까요?</p>
+        <button id="retry-build-btn" type="button" class="canva-button mt-7 rounded-xl px-6 py-4 bg-[#fa765c] text-white font-extrabold">다시 규칙 만들기</button>
+       </div>
+      </div>
+     </div>
+    </section>
+
+    <!-- Step 6: Quiz Screen -->
+    <section id="quiz" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#fffdf4] rounded-[2rem] p-6 md:p-9 shadow-xl text-center relative overflow-hidden">
+      <p class="canva-text text-sm font-bold tracking-wider text-[#d45f47]">6단계</p>
+      <h2 class="canva-text font-extrabold text-2xl mt-1">빈칸에 들어갈 모양 맞히기</h2>
+      <div class="mt-6 bg-[#f5fbf8] rounded-2xl p-5">
+       <div id="quiz-array" class="flex justify-start items-center gap-2 flex-nowrap overflow-x-auto"></div>
+      </div>
+      <p class="canva-text font-bold mt-6 text-lg">마지막 물음표(?) 칸에는 어떤 모양이 올까요?</p>
+      <div id="quiz-buttons" class="grid grid-cols-5 gap-3 mt-5"></div>
+      <p id="quiz-feedback" class="min-h-[28px] font-extrabold mt-6 text-lg" aria-live="polite"></p>
+      <div id="finish-area" class="hidden-panel mt-5">
+       <button id="finish-btn" type="button" class="canva-button rounded-xl px-6 py-4 bg-[#ffd457] text-[#12314a] font-extrabold text-xl shadow-md">활동 배지 받기 🏅</button>
+      </div>
+     </div>
+    </section>
+    
+    <!-- Step 6 Success & Complete -->
+    <section id="complete" class="screen max-w-3xl mx-auto">
+     <div class="bg-[#12314a] rounded-[2rem] p-8 md:p-12 text-white text-center shadow-xl relative overflow-hidden">
+      <div id="confetti-zone" class="absolute inset-0 pointer-events-none"></div>
+      <div class="text-6xl mb-4">🌟</div>
+      <h2 class="canva-text font-extrabold text-3xl">축하합니다! 나도 규칙 탐정이 될 수 있어요!</h2>
+      <p class="canva-text text-[#d9f5eb] mt-3 text-lg">멋지게 규칙을 찾고 퀴즈까지 풀었어요!</p>
+      
+      <div id="badge-count-box" class="mt-5 inline-block bg-[#ffd457] text-[#12314a] font-extrabold text-lg px-6 py-3 rounded-2xl shadow-md">
+       🎖️ 나의 누적 배지: 총 <span id="my-total-badges">1</span>개 획득!
+      </div>
+
+      <div id="save-status" class="mt-6 rounded-xl bg-white/10 p-4 font-bold text-[#bdebd8]" aria-live="polite"></div>
+      <button id="new-activity-btn" type="button" class="canva-button mt-7 rounded-xl px-6 py-4 bg-[#ffd457] text-[#12314a] font-extrabold text-xl shadow-lg">새로운 규칙 만들기 🔄</button>
+     </div>
+    </section>
+
+    <!-- Teacher Live Monitoring Dashboard -->
+    <section id="teacher-screen" class="screen max-w-5xl mx-auto">
+     <div class="bg-white rounded-[2rem] p-6 md:p-9 shadow-xl border-2 border-[#12314a]">
+      <div class="flex flex-wrap justify-between items-center mb-6 gap-3">
+       <div>
+        <div class="flex items-center gap-2">
+          <h2 class="canva-text font-extrabold text-2xl text-[#12314a]">📊 학생 활동 실시간 모니터링</h2>
+          <span id="live-indicator" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
+            <span class="w-2 h-2 mr-1 bg-green-500 rounded-full animate-pulse"></span> Firebase 실시간 연동 중
+          </span>
+        </div>
+        <p class="text-sm text-[#477181] mt-1">태블릿에서 학생들이 제출한 내역이 실시간 클라우드로 전송됩니다.</p>
+       </div>
+       <div class="flex gap-2">
+        <button id="export-csv-btn" type="button" class="px-4 py-2 bg-[#bdebd8] text-[#12314a] font-bold rounded-xl text-sm hover:bg-[#a6e0c7] transition">📥 CSV 다운로드</button>
+        <button id="clear-teacher-data-btn" type="button" class="px-4 py-2 bg-[#f8d9d3] text-[#12314a] font-bold rounded-xl text-sm hover:bg-[#fa765c] hover:text-white transition">기록 전체 삭제</button>
+        <button id="close-teacher-screen-btn" type="button" class="px-4 py-2 bg-[#12314a] text-white font-bold rounded-xl text-sm">닫기</button>
+       </div>
+      </div>
+      
+      <div class="overflow-x-auto rounded-xl border border-[#d8e7e4]">
+       <table class="w-full text-left text-sm">
+        <thead class="bg-[#e8f3f0] text-[#12314a] font-bold">
+         <tr>
+          <th class="p-3 border-b">학생 번호</th>
+          <th class="p-3 border-b">내가 만든 모양 줄</th>
+          <th class="p-3 border-b">내가 생각한 규칙</th>
+          <th class="p-3 border-b">규칙탐정이 찾은 규칙</th>
+          <th class="p-3 border-b">규칙 비교</th>
+          <th class="p-3 border-b">획득 배지 수</th>
+          <th class="p-3 border-b">제출 시간</th>
+         </tr>
+        </thead>
+        <tbody id="teacher-table-body" class="divide-y divide-[#e8f3f0] font-medium text-[#12314a]">
+         <!-- Live data synced via Firebase Cloud Firestore -->
+        </tbody>
+       </table>
+      </div>
+     </div>
+    </section>
+
+   </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 선생님 계정의 Firebase 설정 연결
+    const firebaseConfig = {
+      apiKey: "AIzaSyCBBEx9-DWTstdiiavaQqLATBsJghGZx_U",
+      authDomain: "math-detective-58dee.firebaseapp.com",
+      projectId: "math-detective-58dee",
+      storageBucket: "math-detective-58dee.firebasestorage.app",
+      messagingSenderId: "403177385312",
+      appId: "1:403177385312:web:6db760c1098164bbd94205"
+    };
+
+    let db = null;
+    let recordsCollection = null;
+    let localSavedRecords = [];
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      recordsCollection = collection(db, "student_records");
+    } catch (e) {
+      console.warn("Firebase Init fallback to LocalStorage", e);
+    }
+
+    const shapes = ["●","▲","■","♥","★"];
+    const shapeNames = {
+        "●": "동그라미",
+        "▲": "세모",
+        "■": "네모",
+        "♥": "하트",
+        "★": "별"
+    };
+
+    let selectedStudent = "";
+    let pattern = [];
+    let thought = "";
+    let maxShapeTypes = 2;
+    let ai = null;
+    let match = null;
+    let selectedThoughtUnit = [];
+
+    const $ = id => document.getElementById(id);
+    function show(id) {
+      document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+      $(id).classList.add("active");
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    // 선생님 화면 진입 (브랜드 로고 3번 클릭 -> 비밀번호 1234)
+    let logoClickCount = 0;
+    let logoClickTimer = null;
+    $("brand-header-btn").onclick = () => {
+      logoClickCount++;
+      if (logoClickCount === 3) {
+        clearTimeout(logoClickTimer);
+        logoClickCount = 0;
+        const password = prompt("선생님 비밀번호를 입력해주세요:");
+        if (password === "1234") {
+          subscribeLiveTeacherRecords();
+          show("teacher-screen");
+          return;
+        } else if (password !== null) {
+          alert("비밀번호가 올바르지 않습니다.");
+        }
+      }
+      clearTimeout(logoClickTimer);
+      logoClickTimer = setTimeout(() => {
+        if (logoClickCount < 3) {
+          pattern = [];
+          selectedStudent = "";
+          thought = "";
+          ai = null;
+          match = null;
+          
+          document.querySelectorAll("#student-grid button").forEach(b => b.classList.remove("choice", "selected"));
+          $("selected-student").textContent = "";
+          $("student-next").disabled = true;
+          $("student-badge").classList.add("hidden");
+          $("student-badge").textContent = "";
+
+          renderPattern();
+          show("welcome");
+        }
+        logoClickCount = 0;
+      }, 400);
+    };
+
+    $("close-teacher-screen-btn").onclick = () => show("welcome");
+
+    // 선생님 데이터 전체 삭제 기능
+    $("clear-teacher-data-btn").onclick = async () => {
+      if (confirm("저장된 모든 학생 활동 기록을 클라우드 및 로컬에서 삭제하시겠습니까?")) {
+        localSavedRecords = [];
+        localStorage.removeItem("ai_detective_records");
+        
+        if (recordsCollection) {
+          try {
+            const snapshot = await getDocs(recordsCollection);
+            const deletePromises = snapshot.docs.map(document => deleteDoc(doc(db, "student_records", document.id)));
+            await Promise.all(deletePromises);
+          } catch(err) {
+            console.error("Firestore Clear Error:", err);
+          }
+        }
+        renderTeacherTable([]);
+      }
+    };
+
+    // CSV 파일로 데이터 내보내기
+    $("export-csv-btn").onclick = () => {
+      if (localSavedRecords.length === 0) {
+        alert("내보낼 제출 데이터가 없습니다.");
+        return;
+      }
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+      csvContent += "학생번호,모양줄,생각한규칙,탐정규칙,비교결과,제출시간\n";
+      localSavedRecords.forEach(r => {
+        const timeStr = r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : "";
+        csvContent += `"${r.student_code}번","${r.student_pattern}","${r.student_thought}","${r.ai_unit} 반복","${r.thought_match ? "같음" : "다름"}","${timeStr}"\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `규칙탐정_학습기록_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // Firebase 클라우드 실시간 데이터 구독
+    function subscribeLiveTeacherRecords() {
+      if (recordsCollection) {
+        onSnapshot(recordsCollection, (snapshot) => {
+          const cloudData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          // 시간 기준 내림차순 정렬
+          cloudData.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+          localSavedRecords = cloudData;
+          renderTeacherTable(cloudData);
+        }, (error) => {
+          console.warn("Firestore listener error, using LocalStorage fallback", error);
+          const fallback = JSON.parse(localStorage.getItem("ai_detective_records") || "[]");
+          localSavedRecords = fallback;
+          renderTeacherTable(fallback);
+        });
+      } else {
+        const fallback = JSON.parse(localStorage.getItem("ai_detective_records") || "[]");
+        localSavedRecords = fallback;
+        renderTeacherTable(fallback);
+      }
+    }
+
+    function renderTeacherTable(records) {
+      const tbody = $("teacher-table-body");
+      if (!records || records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-500 font-bold">아직 제출된 학생 활동 기록이 없습니다.</td></tr>`;
+        return;
+      }
+      const badgeCounts = {};
+      records.forEach(r => {
+        badgeCounts[r.student_code] = (badgeCounts[r.student_code] || 0) + 1;
+      });
+
+      tbody.innerHTML = records.map(r => {
+        const timeStr = r.timestamp ? new Date(r.timestamp).toLocaleTimeString("ko-KR", {hour:'2-digit', minute:'2-digit', second:'2-digit'}) : "방금 전";
+        return `
+        <tr class="hover:bg-[#f5fbf8] transition">
+          <td class="p-3 font-extrabold text-[#d45f47]">${r.student_code}번 학생</td>
+          <td class="p-3 font-mono text-base">${r.student_pattern}</td>
+          <td class="p-3 font-bold">${r.student_thought}</td>
+          <td class="p-3 font-bold">${r.ai_unit} 반복</td>
+          <td class="p-3 font-bold">${r.thought_match ? "같아요! 😄" : "달라요! 🧐"}</td>
+          <td class="p-3 font-extrabold text-[#21845d]">🎖️ 총 ${badgeCounts[r.student_code] || 1}개</td>
+          <td class="p-3 text-xs text-gray-500">${timeStr}</td>
+        </tr>
+      `}).join("");
+    }
+
+    $("start-btn").onclick = () => show("student");
+
+    const shapeColors = {"●":"#f8d9d3","▲":"#d7ebfa","■":"#e9ddfa","★":"#fff0ae","♥":"#f9d6df"};
+    function tokens(list) { return list.map(x => `<span class="array-token" style="background-color:${shapeColors[x]}">${x}</span>`).join(""); }
+    function quizTokens(list) {
+      return list.map(x => `<span class="array-token" style="background-color:${shapeColors[x]}">${x}</span>`).join("") + `<span class="array-token quiz-answer-box" aria-label="다음 모양 물음표">?</span>`;
+    }
+    
+    function renderPattern() {
+      $("pattern-array").innerHTML = pattern.length ? tokens(pattern) : "";
+      $("shape-count").textContent = pattern.length + " / 12";
+      $("minimum-note").textContent = pattern.length < 6 ? "규칙 탐정에게 물어보려면 모양을 6개 이상 골라요." : "좋아요! 규칙을 살펴볼 준비가 되었어요.";
+      const thinkButton = $("think-btn");
+      thinkButton.disabled = pattern.length < 6;
+      thinkButton.setAttribute("aria-disabled", String(thinkButton.disabled));
+    }
+
+    function findRule(arr) {
+      for (let len=1; len<=Math.floor(arr.length/2); len++) {
+        const unit = arr.slice(0,len);
+        if (arr.every((v,i) => v === unit[i % len])) return unit;
+      }
+      return null;
+    }
+
+    function getPreciseExplanation(ruleUnitArr) {
+      const koreanNames = ruleUnitArr.map(shape => shapeNames[shape] || shape);
+      const unitText = koreanNames.join(", ");
+      return `${unitText} 모양이 순서대로 규칙에 맞게 반복되고 있어요!`;
+    }
+
+    function blast() {
+      const zone = $("confetti-zone");
+      zone.innerHTML = "";
+      ["#ffd457","#fa765c","#bdebd8","#d7ebfa","#ffffff"].forEach((color,i) => {
+        for(let j=0;j<6;j++) {
+          const bit=document.createElement("span");
+          bit.className="confetti"; bit.style.background=color;
+          bit.style.left="50%"; bit.style.top="42%";
+          bit.style.setProperty("--x", (Math.random()*420-210)+"px");
+          bit.style.setProperty("--y", (Math.random()*-260+70)+"px");
+          bit.style.animationDelay=(i*j*.012)+"s";
+          zone.appendChild(bit);
+        }
+      });
+    }
+
+    function resetActivity() {
+      pattern=[]; thought=""; ai=null; match=null;
+      renderPattern(); show("builder");
+    }
+
+    // Step 1: 번호 생성
+    for(let i=1;i<=22;i++) {
+      const b=document.createElement("button");
+      b.type="button"; b.textContent=i+"번"; b.className="rounded-xl border-2 border-[#d8e7e4] bg-white py-3 font-extrabold hover:bg-[#fff6ce]";
+      b.addEventListener("click", () => {
+        selectedStudent=String(i);
+        [...$("student-grid").children].forEach(x=>x.classList.remove("choice","selected"));
+        b.classList.add("choice","selected");
+        $("selected-student").textContent=i+"번 학생, 준비됐어요!";
+        $("student-next").disabled=false;
+      });
+      $("student-grid").appendChild(b);
+    }
+
+    document.querySelectorAll(".level-choice").forEach(btn=>btn.addEventListener("click",()=>{
+      maxShapeTypes=Number(btn.dataset.level);
+      document.querySelectorAll("[data-shape]").forEach((shapeBtn,index)=>shapeBtn.classList.toggle("hidden", index>=maxShapeTypes));
+      show("builder");
+    }));
+
+    $("student-next").onclick=()=> {
+      $("student-badge").textContent=selectedStudent+"번 학생";
+      $("student-badge").classList.remove("hidden");
+      show("level");
+    };
+
+    document.querySelectorAll("[data-shape]").forEach(btn=>btn.addEventListener("click",()=>{
+      if(pattern.length<12 && shapes.slice(0,maxShapeTypes).includes(btn.dataset.shape)) { 
+        pattern.push(btn.dataset.shape); 
+        renderPattern(); 
+      }
+    }));
+
+    $("undo-btn").onclick=()=>{ pattern.pop(); renderPattern(); };
+    $("reset-btn").onclick=()=>{ pattern=[]; renderPattern(); };
+
+    $("think-btn").onclick=()=>{
+      if(pattern.length < 6) return;
+      $("thinking-array").innerHTML=tokens(pattern);
+      selectedThoughtUnit=[];
+      $("thought-undo-btn").disabled=true;
+      $("thought-note").textContent="";
+      $("selected-rule-unit").textContent="";
+      $("thought-choices").innerHTML="";
+
+      shapes.slice(0,maxShapeTypes).forEach(shape=>{
+        const choice=document.createElement("button");
+        choice.type="button";
+        choice.className="thought-choice rounded-xl border-2 border-[#b8d7d0] bg-white px-5 py-3 text-3xl font-extrabold hover:bg-[#fff6ce]";
+        choice.textContent=shape;
+        choice.style.background=shapeColors[shape];
+        choice.setAttribute("aria-label", shape+" 모양을 선택에 추가");
+        choice.onclick=()=>{
+          if(selectedThoughtUnit.length >= 6) return;
+          selectedThoughtUnit.push(shape);
+          $("thought-undo-btn").disabled=false;
+          $("selected-rule-unit").innerHTML=tokens(selectedThoughtUnit);
+        };
+        $("thought-choices").appendChild(choice);
+      });
+      show("thinking");
+    };
+
+    $("thought-undo-btn").onclick=()=>{
+      if(!selectedThoughtUnit.length) return;
+      selectedThoughtUnit.pop();
+      $("selected-rule-unit").innerHTML=tokens(selectedThoughtUnit);
+      $("thought-undo-btn").disabled=selectedThoughtUnit.length===0;
+      $("thought-note").textContent="";
+    };
+
+    $("back-to-builder-btn").onclick=()=>show("builder");
+    
+    $("analyse-btn").onclick=async ()=>{
+      if(!selectedThoughtUnit.length) { 
+        $("thought-note").textContent="반복되는 모양을 하나 이상 눌러 선택해 주세요."; 
+        return; 
+      }
+      thought=selectedThoughtUnit.join(" ")+" 반복";
+      $("thought-note").textContent="";
+      show("analysis");
+      $("analysis-loading").classList.remove("hidden-panel"); 
+      $("analysis-result").classList.add("hidden-panel");
+      
+      ai=findRule(pattern);
+
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      const aiExplanationText = ai ? getPreciseExplanation(ai) : "";
+      
+      $("analysis-loading").classList.add("hidden-panel"); 
+      $("analysis-result").classList.remove("hidden-panel");
+
+      if(ai) {
+        $("ai-success").classList.remove("hidden-panel"); 
+        $("ai-failure").classList.add("hidden-panel");
+        $("chosen-thought").textContent = thought;
+        $("ai-thought-summary").textContent = ai.join(" ") + " 반복";
+        $("ai-explanation").textContent = aiExplanationText;
+      } else {
+        $("ai-success").classList.add("hidden-panel");
+        $("failure-array").innerHTML = tokens(pattern);
+        $("ai-failure").classList.remove("hidden-panel");
+      }
+    };
+
+    $("retry-build-btn").onclick=()=>resetActivity();
+
+    function openQuiz(same) {
+      match=same;
+      $("quiz-array").innerHTML=quizTokens(pattern);
+      $("quiz-feedback").textContent="";
+      $("finish-area").classList.add("hidden-panel");
+      $("quiz-buttons").innerHTML="";
+      shapes.slice(0,maxShapeTypes).forEach(shape=>{
+        const b=document.createElement("button");
+        b.type="button"; b.textContent=shape; b.className="shape-btn quiz-choice rounded-2xl py-4 text-3xl font-bold";
+        b.style.background=shapeColors[shape];
+        b.setAttribute("aria-label",shape+" 선택");
+        b.onclick=()=>answer(shape,b);
+        $("quiz-buttons").appendChild(b);
+      });
+      show("quiz");
+    }
+
+    $("match-yes").onclick=()=>openQuiz(true);
+    $("match-no").onclick=()=>openQuiz(false);
+
+    function answer(shape, button) {
+      if($("finish-area").classList.contains("hidden-panel")===false) return;
+      document.querySelectorAll("#quiz-buttons .quiz-choice").forEach(choice => choice.classList.remove("selected"));
+      button.classList.add("selected");
+
+      const fullPattern = [];
+      const repeatUnit = findRule(pattern) || pattern.slice(0, 2);
+      while(fullPattern.length < pattern.length + 1) {
+        fullPattern.push(...repeatUnit);
+      }
+      const expectedShape = fullPattern[pattern.length];
+
+      if(shape === expectedShape) {
+        $("quiz-feedback").textContent = "참 잘했어요! 정답입니다! 🌟";
+        $("quiz-feedback").style.color = "#21845d";
+        $("finish-area").classList.remove("hidden-panel");
+      } else {
+        $("quiz-feedback").textContent = "아쉬워요! 규칙을 다시 살펴보며 다른 모양을 골라볼까요?";
+        $("quiz-feedback").style.color = "#d45f47";
+      }
+    }
+
+    $("finish-btn").onclick = async () => {
+      blast();
+
+      const newRecord = {
+        student_code: selectedStudent || "1",
+        student_pattern: pattern.join(" "),
+        student_thought: thought,
+        ai_unit: ai ? ai.join(" ") : "-",
+        thought_match: match,
+        timestamp: new Date().toISOString()
+      };
+
+      // 1. Firebase 클라우드 전송
+      if (recordsCollection) {
+        try {
+          await addDoc(recordsCollection, newRecord);
+        } catch(err) {
+          console.error("Firebase submit error:", err);
+        }
+      }
+
+      // 2. 로컬 백업 저장
+      localSavedRecords.unshift(newRecord);
+      localStorage.setItem("ai_detective_records", JSON.stringify(localSavedRecords));
+
+      // 3. 누적 배지 수 계산
+      const totalBadges = localSavedRecords.filter(r => r.student_code === (selectedStudent || "1")).length;
+      $("my-total-badges").textContent = totalBadges;
+      $("save-status").textContent = "활동 결과가 실시간으로 교사 화면으로 전송되었습니다! 🚀";
+
+      show("complete");
+    };
+
+    $("new-activity-btn").onclick = () => resetActivity();
+  </script>
+ </body>
+</html>
