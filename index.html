@@ -656,7 +656,20 @@
       }
     }
 
+    // 중복 제출 방지 변수
+    let isSubmitting = false;
+
     $("finish-btn").onclick = async () => {
+      // 이미 제출 중이면 중복 실행 방지
+      if (isSubmitting) return;
+      isSubmitting = true;
+
+      // 버튼 비활성화 시각 효과
+      const finishBtn = $("finish-btn");
+      finishBtn.disabled = true;
+      finishBtn.textContent = "배지 생성 중... ⏳";
+      finishBtn.classList.add("opacity-50", "cursor-not-allowed");
+
       blast();
 
       const newRecord = {
@@ -687,6 +700,12 @@
       $("save-status").textContent = "활동 결과가 실시간으로 교사 화면으로 전송되었습니다! 🚀";
 
       show("complete");
+
+      // 버튼 상태 원복 (새 활동 준비용)
+      isSubmitting = false;
+      finishBtn.disabled = false;
+      finishBtn.textContent = "활동 배지 받기 🏅";
+      finishBtn.classList.remove("opacity-50", "cursor-not-allowed");
     };
 
     $("new-activity-btn").onclick = () => resetActivity();
