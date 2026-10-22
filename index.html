@@ -1,4 +1,4 @@
-<!doctype html>
+
 <html lang="ko">
  <head>
   <meta charset="UTF-8">
@@ -278,7 +278,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, onSnapshot, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     // 선생님 계정의 Firebase 설정 연결
     const firebaseConfig = {
@@ -298,6 +298,28 @@
       const app = initializeApp(firebaseConfig);
       db = getFirestore(app);
       recordsCollection = collection(db, "student_records");
+      
+      // 항상 실시간 데이터 동기화 유지
+      if (recordsCollection) {
+        onSnapshot(recordsCollection, (snapshot) => {
+          const cloudData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          cloudData.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
+          localSavedRecords = cloudData;
+          localStorage.setItem("ai_detective_records", JSON.stringify(cloudData));
+          
+          // 현재 접속해 있는 학생의 최신 배지 수도 실시간 갱신
+          if (selectedStudent) {
+            updateBadgeCountDisplay(selectedStudent);
+          }
+          
+          const teacherScreen = $("teacher-screen");
+          if (teacherScreen && teacherScreen.classList.contains("active")) {
+            renderTeacherTable(cloudData);
+          }
+        }, (error) => {
+          console.warn("Firestore listener error, using LocalStorage fallback", error);
+        });
+      }
     } catch (e) {
       console.warn("Firebase Init fallback to LocalStorage", e);
     }
@@ -326,6 +348,12 @@
       window.scrollTo({top:0, behavior:"smooth"});
     }
 
+    function updateBadgeCountDisplay(studentNum) {
+      if (!studentNum) return;
+      const count = localSavedRecords.filter(r => r.student_code === String(studentNum)).length;
+      $("my-total-badges").textContent = count;
+    }
+
     // 선생님 화면 진입 (브랜드 로고 3번 클릭 -> 비밀번호 1234)
     let logoClickCount = 0;
     let logoClickTimer = null;
@@ -336,7 +364,7 @@
         logoClickCount = 0;
         const password = prompt("선생님 비밀번호를 입력해주세요:");
         if (password === "1234") {
-          subscribeLiveTeacherRecords();
+          renderTeacherTable(localSavedRecords);
           show("teacher-screen");
           return;
         } else if (password !== null) {
@@ -369,7 +397,7 @@
 
     // 선생님 데이터 전체 삭제 기능
     $("clear-teacher-data-btn").onclick = async () => {
-      if (confirm("저장된 모든 학생 활동 기록을 클라우드 및 로컬에서 삭제하시겠습니까?")) {
+      if (confirm("저장된 모든 학생 활동 기록을 클라우드 및 로컬에서 삭제하시겠습니까?\n(모든 학생의 누적 배지도 초기화됩니다.)")) {
         localSavedRecords = [];
         localStorage.removeItem("ai_detective_records");
         
@@ -383,6 +411,9 @@
           }
         }
         renderTeacherTable([]);
+        if (selectedStudent) {
+          updateBadgeCountDisplay(selectedStudent);
+        }
       }
     };
 
@@ -406,28 +437,6 @@
       link.click();
       document.body.removeChild(link);
     };
-
-    // Firebase 클라우드 실시간 데이터 구독
-    function subscribeLiveTeacherRecords() {
-      if (recordsCollection) {
-        onSnapshot(recordsCollection, (snapshot) => {
-          const cloudData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          // 시간 기준 내림차순 정렬
-          cloudData.sort((a,b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
-          localSavedRecords = cloudData;
-          renderTeacherTable(cloudData);
-        }, (error) => {
-          console.warn("Firestore listener error, using LocalStorage fallback", error);
-          const fallback = JSON.parse(localStorage.getItem("ai_detective_records") || "[]");
-          localSavedRecords = fallback;
-          renderTeacherTable(fallback);
-        });
-      } else {
-        const fallback = JSON.parse(localStorage.getItem("ai_detective_records") || "[]");
-        localSavedRecords = fallback;
-        renderTeacherTable(fallback);
-      }
-    }
 
     function renderTeacherTable(records) {
       const tbody = $("teacher-table-body");
@@ -688,15 +697,13 @@
         } catch(err) {
           console.error("Firebase submit error:", err);
         }
+      } else {
+        localSavedRecords.unshift(newRecord);
+        localStorage.setItem("ai_detective_records", JSON.stringify(localSavedRecords));
       }
 
-      // 2. 로컬 백업 저장
-      localSavedRecords.unshift(newRecord);
-      localStorage.setItem("ai_detective_records", JSON.stringify(localSavedRecords));
-
-      // 3. 누적 배지 수 계산
-      const totalBadges = localSavedRecords.filter(r => r.student_code === (selectedStudent || "1")).length;
-      $("my-total-badges").textContent = totalBadges;
+      // 2. 누적 배지 수 실시간 업데이트
+      updateBadgeCountDisplay(selectedStudent || "1");
       $("save-status").textContent = "활동 결과가 실시간으로 교사 화면으로 전송되었습니다! 🚀";
 
       show("complete");
